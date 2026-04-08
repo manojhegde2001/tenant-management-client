@@ -1,41 +1,71 @@
 # Tenant Management Frontend
 
-A premium React dashboard for managing users, roles, and sites.
+A premium, high-fidelity React dashboard for the Ada Lovelace Technologies Tenant Management System. Built with speed and aesthetics in mind, this frontend provides an intuitive interface for managing digital identities and site infrastructure.
 
-## Tech Stack
-- React (Vite)
-- Axios (API Client)
-- Lucide React (Icons)
-- Context API (State Management)
-- Vanilla CSS (Design System)
+---
 
-## Features
-- **JWT Authentication**: Secure login/logout flow with auto-redirects.
-- **Protected Routes**: Ensuring only authenticated users can access management pages.
-- **Dashboard**: Real-time stats and overview.
-- **Users**: List, search, paginate, create, edit, and deactivate users.
-- **Roles**: Create and manage roles with permission arrays.
-- **Sites**: Facility management with status controls.
+## ✨ Key Features
 
-## Setup Instructions
+- **Premium UI/UX**: Modern design system utilizing **Glassmorphism**, custom gradients, and the **Inter** typeface for a professional look.
+- **Micro-Animations**: Smooth transitions and entry animations (fade-in/slide) powered by custom CSS and Tailwind v4.
+- **State-of-the-Art Forms**: Robust input handling with real-time feedback and validation.
+- **Authentication**: Seamless JWT integration with contextual routing (Protected Routes).
+- **Responsive Layout**: Fluid design optimized for mobile, tablet, and desktop viewing.
 
-1.  **Install Dependencies**:
-    ```bash
-    npm install
-    ```
+---
 
-2.  **Environment Variables**:
-    Create a `.env` file in the root:
-    ```env
-    VITE_API_URL=http://localhost:5000/api
-    ```
+## 🛠️ Tech Stack
 
-3.  **Run Development Server**:
-    ```bash
-    npm run dev
-    ```
+- **Framework**: [React 19](https://react.dev/)
+- **Build Tool**: [Vite](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) (using the new `@theme` configuration)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Notifications**: [React Hot Toast](https://react-hot-toast.com/)
+- **Navigation**: [React Router v7](https://reactrouter.com/)
 
-4.  **Build for Production**:
-    ```bash
-    npm run build
-    ```
+---
+
+## 📁 Folder Structure
+
+- **`src/pages`**: Full-page components (Dashboard, Users, Roles, Site management).
+- **`src/components`**: Reusable UI components (Layout, Cards, Inputs, Buttons).
+- **`src/services`**: API client abstraction using Axios.
+- **`src/context`**: Global state management (Auth state).
+- **`src/styles`**: Design system tokens and global CSS.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Installation
+```bash
+npm install
+```
+
+### 2. Configure Environment
+Create a `.env` file in the root directory:
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+### 3. Development Mode
+```bash
+npm run dev
+```
+
+### 4. Production Build
+```bash
+npm run build
+```
+
+---
+
+## 🌐 Deployment
+
+This application is ready for deployment on **Vercel**.
+- The `vercel.json` ensures Spa-friendly routing (handling 404s and rewrites).
+- Environment variables must be configured in the Vercel Project Settings.
+
+---
+
+*Designed and Developed by Ada Lovelace Technologies.*
