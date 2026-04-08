@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, ShieldCheck, X, ChevronRight, Github } from 'lucide-react';
+import { LayoutDashboard, Users, ShieldCheck, X, ChevronRight, Globe } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -72,7 +72,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
-                  <Github size={16} className="text-white" />
+                  <Globe size={16} className="text-white" />
                 </div>
                 <div>
                   <p className="text-[11px] font-bold text-white/90">Repositories</p>
