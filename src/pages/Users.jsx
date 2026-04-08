@@ -15,7 +15,7 @@ const Users = () => {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [params, setParams] = useState({ page: 1, limit: 10, search: '' });
-  const [pagination, setPagination] = useState({ pages: 1, current: 1 });
+  const [pagination, setPagination] = useState({ pages: 1, current: 1, limit: 10, total: 0 });
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,7 +27,12 @@ const Users = () => {
     try {
       const data = await getUsers(params);
       setUsers(data.users);
-      setPagination({ pages: data.pages, current: data.page });
+      setPagination({ 
+        pages: data.pages, 
+        current: data.page,
+        limit: data.limit,
+        total: data.total
+      });
       
       const roleData = await getRoles();
       setRoles(roleData);
@@ -95,6 +100,14 @@ const Users = () => {
   };
 
   const columns = [
+    {
+      header: '#',
+      render: (_, idx) => (
+        <span className="text-[10px] font-bold text-text-muted/50 font-mono">
+          {((pagination.current - 1) * params.limit + idx + 1).toString().padStart(2, '0')}
+        </span>
+      )
+    },
     { 
       header: 'Identity', 
       render: (row) => (
@@ -181,25 +194,42 @@ const Users = () => {
         <Table columns={columns} data={users} loading={loading} emptyMessage="No system users found matching your criteria." />
         
         <div className="flex items-center justify-between px-6 py-4 bg-slate-50/50 border-t border-border">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-text-muted uppercase tracking-widest leading-none">
-              Viewing Page {pagination.current} of {pagination.pages}
-            </span>
+          <div className="flex items-center gap-6 text-text-muted">
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">
+                Per Page
+              </span>
+              <select 
+                className="bg-white border-2 border-slate-100 rounded-lg px-2 py-1 text-[11px] font-black text-text-main focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all cursor-pointer"
+                value={params.limit}
+                onChange={(e) => setParams({ ...params, limit: parseInt(e.target.value), page: 1 })}
+              >
+                {[5, 10, 25, 50].map(size => (
+                  <option key={size} value={size}>{size}</option>
+                ))}
+              </select>
+            </div>
+            <div className="h-4 w-[2px] bg-slate-200 hidden sm:block"></div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest leading-none">
+                {pagination.current} / {pagination.pages} PAGES • {pagination.total} TOTAL
+              </span>
+            </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <Button 
               variant="secondary" 
               size="sm"
-              className="px-4"
+              className="px-4 h-8 text-[11px] font-bold uppercase tracking-widest"
               disabled={pagination.current === 1}
               onClick={() => setParams({ ...params, page: pagination.current - 1 })}
             >
-              Previous
+              Prev
             </Button>
             <Button 
               variant="secondary" 
               size="sm"
-              className="px-4"
+              className="px-4 h-8 text-[11px] font-bold uppercase tracking-widest"
               disabled={pagination.current === pagination.pages}
               onClick={() => setParams({ ...params, page: pagination.current + 1 })}
             >

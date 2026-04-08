@@ -48,7 +48,7 @@ const Table = ({ columns, data, loading = false, emptyMessage = "No data found" 
                     key={colIdx} 
                     className={cn("px-6 py-4 text-sm text-text-main", col.className)}
                   >
-                    {col.render ? col.render(row) : row[col.key]}
+                    {col.render ? col.render(row, rowIdx) : row[col.key]}
                   </td>
                 ))}
               </tr>

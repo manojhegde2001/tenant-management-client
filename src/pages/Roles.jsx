@@ -97,6 +97,14 @@ const Roles = () => {
   };
 
   const columns = [
+    {
+      header: '#',
+      render: (_, idx) => (
+        <span className="text-[10px] font-bold text-text-muted/50 font-mono">
+          {(idx + 1).toString().padStart(2, '0')}
+        </span>
+      )
+    },
     { 
       header: 'Security Role', 
       render: (row) => (
