@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Edit2, UserX, Mail, Shield, User as UserIcon } from 'lucide-react';
-import { getUsers, createUser, updateUser, deactivateUser } from '../services/userService';
+import { Plus, Search, Edit2, UserX, UserCheck, Mail, Shield, User as UserIcon } from 'lucide-react';
+import { getUsers, createUser, updateUser, deactivateUser as toggleUserStatus } from '../services/userService';
 import { getRoles } from '../services/roleService';
 import Table from '../components/UI/Table';
 import Button from '../components/UI/Button';
@@ -77,11 +77,16 @@ const Users = () => {
     }
   };
 
-  const handleDeactivate = async (id) => {
-    if (window.confirm('Deactivate this user? They will lose all system access immediately.')) {
+  const handleToggleStatus = async (user) => {
+    const isActivating = user.status === 'inactive';
+    const confirmMessage = isActivating 
+      ? 'Activate this user account?' 
+      : 'Deactivate this user? They will lose all system access immediately.';
+
+    if (window.confirm(confirmMessage)) {
       try {
-        await deactivateUser(id);
-        toast.success('User status updated');
+        await toggleUserStatus(user._id);
+        toast.success(`User ${isActivating ? 'activated' : 'deactivated'}`);
         fetchData();
       } catch (err) {
         toast.error('Operation failed');
@@ -133,8 +138,14 @@ const Users = () => {
           <Button variant="ghost" size="icon" onClick={() => handleOpenModal(row)} title="Edit Profile">
             <Edit2 size={16} />
           </Button>
-          <Button variant="ghost" size="icon" className="hover:text-error" onClick={() => handleDeactivate(row._id)} title="Deactivate">
-            <UserX size={16} />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={row.status === 'active' ? 'hover:text-error' : 'hover:text-success'} 
+            onClick={() => handleToggleStatus(row)} 
+            title={row.status === 'active' ? 'Deactivate' : 'Activate'}
+          >
+            {row.status === 'active' ? <UserX size={16} /> : <UserCheck size={16} />}
           </Button>
         </div>
       )
