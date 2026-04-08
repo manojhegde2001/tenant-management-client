@@ -66,87 +66,97 @@ const Sites = () => {
   };
 
   const columns = [
-    { header: 'Site Name', key: 'name', render: (row) => (
-      <div className="flex items-center gap-2 font-bold">
-        <MapPin size={16} className="text-accent" />
-        {row.name}
+    { header: 'Site Info', key: 'name', render: (row) => (
+      <div className="flex items-center gap-3 font-bold text-text-main tracking-tight">
+        <div className="p-2 bg-primary/10 rounded-lg text-primary">
+          <MapPin size={18} />
+        </div>
+        <div>
+          <p className="font-bold text-text-main">{row.name}</p>
+          <p className="text-[11px] text-text-muted mt-0.5 font-normal">{row.location}</p>
+        </div>
       </div>
     )},
-    { header: 'Location', key: 'location' },
     { header: 'Status', render: (row) => (
-      <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-        row.status === 'active' ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
+      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm ${
+        row.status === 'active' ? 'bg-success/10 text-success border border-success/20' : 'bg-error/10 text-error border border-error/20'
       }`}>
         {row.status}
       </span>
     )},
     { header: 'Actions', render: (row) => (
       <div className="flex gap-2">
-        <button onClick={() => handleOpenModal(row)} className="p-1.5 hover:bg-primary/10 text-primary rounded">
+        <button onClick={() => handleOpenModal(row)} className="p-2 hover:bg-primary/10 text-primary border border-transparent hover:border-primary/20 rounded-lg transition-all" title="Edit">
           <Edit2 size={16} />
         </button>
-        <button onClick={() => handleDelete(row._id)} className="p-1.5 hover:bg-error/10 text-error rounded">
+        <button onClick={() => handleDelete(row._id)} className="p-2 hover:bg-error/10 text-error border border-transparent hover:border-error/20 rounded-lg transition-all" title="Delete">
           <Trash2 size={16} />
         </button>
       </div>
     )},
   ];
 
+  const InputClass = "w-full p-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-main font-medium";
+
   return (
     <div className="fade-in">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-text-main">Sites</h1>
-          <p className="text-text-muted">Manage physical locations and facility status.</p>
+          <h1 className="text-3xl font-black text-text-main mb-1 tracking-tight">Facility Sites</h1>
+          <p className="text-text-muted text-sm">Manage physical locations and infrastructure endpoints.</p>
         </div>
         <Button onClick={() => handleOpenModal()}>
-          <Plus size={20} /> Add New Site
+          <Plus size={18} /> Add New Site
         </Button>
       </header>
 
-      <div className="card shadow-lg p-0 border-none overflow-hidden">
+      <div className="card shadow-sm p-0 border-none justify-between overflow-hidden bg-surface">
         <Table columns={columns} data={sites} loading={loading} />
       </div>
 
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={editSite ? 'Edit Site' : 'Add New Site'}
+        title={editSite ? 'Edit Site Settings' : 'Register New Site'}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-text-muted uppercase mb-1">Site Name</label>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Site Name</label>
             <input 
               required
+              className={InputClass}
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g. London Office"
+              placeholder="e.g. London Tech Hub"
             />
           </div>
-          <div>
-            <label className="block text-xs font-bold text-text-muted uppercase mb-1">Location / Address</label>
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Physical Address</label>
             <input 
               required
+              className={InputClass}
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="e.g. 123 Tech Square"
+              placeholder="123 Developer Way, London"
             />
           </div>
-          <div>
-            <label className="block text-xs font-bold text-text-muted uppercase mb-1">Status</label>
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Operational Status</label>
             <select 
-              className="w-full p-3 border border-border rounded-xl bg-surface"
+              className={InputClass}
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
             >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="active">Active - Online</option>
+              <option value="inactive">Inactive - Offline</option>
             </select>
           </div>
           
-          <Button type="submit" className="w-full py-3 mt-4">
-            {editSite ? 'Update Site' : 'Create Site'}
-          </Button>
+          <div className="pt-4 mt-6 border-t border-border">
+            <Button type="submit" className="w-full py-3">
+              {editSite ? 'Update Site' : 'Register Site'}
+            </Button>
+          </div>
         </form>
       </Modal>
     </div>

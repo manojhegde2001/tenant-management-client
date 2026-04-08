@@ -35,20 +35,23 @@ const Dashboard = () => {
       </header>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map(idx => (
-            <div key={idx} className="h-32 bg-surface rounded-2xl border border-border"></div>
+            <div key={idx} className="h-32 bg-surface rounded-xl border border-border shadow-sm flex flex-col justify-center p-6 animate-pulse">
+              <div className="h-4 bg-background w-24 mb-4 rounded"></div>
+              <div className="h-8 bg-background w-12 rounded"></div>
+            </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
           {statCards.map((card, idx) => (
-            <div key={idx} className="card flex items-center justify-between">
+            <div key={idx} className="card p-6 flex items-center justify-between hover:shadow-md transition-shadow group cursor-default">
               <div>
-                <p className="text-sm font-medium text-text-muted mb-1">{card.label}</p>
-                <h3 className="text-2xl font-black text-text-main">{card.value}</h3>
+                <p className="text-sm font-semibold text-text-muted mb-2 tracking-wide uppercase">{card.label}</p>
+                <h3 className="text-3xl font-black text-text-main group-hover:text-primary transition-colors">{card.value}</h3>
               </div>
-              <div className={`p-3 rounded-xl ${card.color}`}>
+              <div className={`p-4 rounded-full ${card.color} transition-transform group-hover:scale-110`}>
                 {card.icon}
               </div>
             </div>
@@ -58,11 +61,13 @@ const Dashboard = () => {
 
       {/* Placeholder for charts/recent activity */}
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card h-64 flex items-center justify-center text-text-muted border-dashed">
-          Chart Placeholder: User Growth
+        <div className="card h-80 flex flex-col items-center justify-center text-text-muted border-dashed border-2 bg-transparent hover:bg-surface transition-colors">
+          <MapPin size={48} className="mb-4 text-border" />
+          <p className="font-semibold">Chart Placeholder: User Growth</p>
         </div>
-        <div className="card h-64 flex items-center justify-center text-text-muted border-dashed">
-          Chart Placeholder: Site Distribution
+        <div className="card h-80 flex flex-col items-center justify-center text-text-muted border-dashed border-2 bg-transparent hover:bg-surface transition-colors">
+          <ShieldCheck size={48} className="mb-4 text-border" />
+          <p className="font-semibold">Chart Placeholder: Site Distribution</p>
         </div>
       </div>
     </div>

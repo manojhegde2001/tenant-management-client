@@ -1,66 +1,56 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, ShieldCheck, MapPin, LogOut } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { LogOut, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-const Navbar = () => {
+const Navbar = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const navItems = [
-    { to: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-    { to: '/users', icon: <Users size={20} />, label: 'Users' },
-    { to: '/roles', icon: <ShieldCheck size={20} />, label: 'Roles' },
-    { to: '/sites', icon: <MapPin size={20} />, label: 'Sites' },
-  ];
-
   return (
-    <nav className="bg-surface border-b border-border sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center gap-8">
-            <span className="text-xl font-black premium-gradient bg-clip-text text-transparent uppercase tracking-tighter">
-              Tenant Hub
-            </span>
-            
-            <div className="hidden md:flex items-center gap-4">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                      isActive 
-                        ? 'bg-primary/10 text-primary' 
-                        : 'text-text-muted hover:bg-background hover:text-text-main'
-                    }`
-                  }
-                >
-                  {item.icon}
-                  {item.label}
-                </NavLink>
-              ))}
-            </div>
+    <nav className="bg-surface border-b border-border sticky top-0 z-30 shadow-sm h-16">
+      <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
+        
+        {/* Mobile Menu Toggle */}
+        <div className="flex items-center">
+          <button 
+            onClick={onMenuClick}
+            className="lg:hidden p-2 -ml-2 text-text-muted hover:text-text-main focus:outline-none"
+            aria-label="Toggle menu"
+          >
+            <Menu size={24} />
+          </button>
+          
+          {/* Optional: Add page title or breadcrumbs here in the future */}
+          <span className="hidden lg:block text-sm font-medium text-text-muted capitalize">
+            {location.pathname === '/' ? 'Dashboard' : location.pathname.substring(1)}
+          </span>
+        </div>
+
+        {/* User Profile & Actions */}
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex flex-col items-end mr-2">
+            <span className="text-sm font-bold text-text-main">{user?.name || 'Admin User'}</span>
+            <span className="text-xs text-text-muted font-medium capitalize">{user?.role?.name || 'Administrator'}</span>
+          </div>
+          
+          <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold border border-primary/20">
+            {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col items-end mr-4">
-              <span className="text-sm font-bold text-text-main">{user?.name}</span>
-              <span className="text-xs text-text-muted capitalize">{user?.role?.name}</span>
-            </div>
-            <button 
-              onClick={handleLogout}
-              className="p-2 text-text-muted hover:text-error hover:bg-error/5 rounded-full transition-all"
-              title="Logout"
-            >
-              <LogOut size={20} />
-            </button>
-          </div>
+          <button 
+            onClick={handleLogout}
+            className="p-2 ml-2 text-text-muted hover:text-error hover:bg-error/5 rounded-lg transition-colors border border-transparent hover:border-error/20"
+            title="Logout"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
     </nav>

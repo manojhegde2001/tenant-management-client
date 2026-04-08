@@ -43,8 +43,9 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-text-muted mb-1.5">Email Address</label>
+            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Email Address</label>
             <input 
+              className="w-full p-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-main font-medium shadow-sm"
               type="email" 
               placeholder="name@example.com"
               value={email}
@@ -54,8 +55,9 @@ const Login = () => {
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-text-muted mb-1.5">Password</label>
+            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Password</label>
             <input 
+              className="w-full p-3.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-main font-medium shadow-sm"
               type="password" 
               placeholder="••••••••"
               value={password}
