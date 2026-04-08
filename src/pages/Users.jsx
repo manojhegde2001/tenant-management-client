@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Edit2, UserX, MapPin } from 'lucide-react';
+import { Plus, Search, Edit2, UserX, MapPin, Mail, Shield, User as UserIcon, MoreHorizontal } from 'lucide-react';
 import { getUsers, createUser, updateUser, deactivateUser } from '../services/userService';
 import { getRoles } from '../services/roleService';
 import { getSites } from '../services/siteService';
 import Table from '../components/UI/Table';
 import Button from '../components/UI/Button';
 import Modal from '../components/UI/Modal';
+import Input, { Select } from '../components/UI/Input';
+import Badge from '../components/UI/Badge';
+import Card from '../components/UI/Card';
+import { toast } from 'react-hot-toast';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -31,6 +35,7 @@ const Users = () => {
       setRoles(roleData);
       setSites(siteData);
     } catch (err) {
+      toast.error('Failed to sync user data');
       console.error(err);
     } finally {
       setLoading(false);
@@ -47,7 +52,7 @@ const Users = () => {
       setFormData({
         name: user.name,
         email: user.email,
-        password: '', // Don't show password
+        password: '',
         role: user.role?._id || '',
         site: user.site?._id || '',
         status: user.status
@@ -64,108 +69,149 @@ const Users = () => {
     try {
       if (editUser) {
         await updateUser(editUser._id, formData);
+        toast.success('User updated successfully');
       } else {
         await createUser(formData);
+        toast.success('New user created');
       }
       setIsModalOpen(false);
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save user');
+      toast.error(err.response?.data?.message || 'Failed to save record');
     }
   };
 
   const handleDeactivate = async (id) => {
-    if (window.confirm('Are you sure you want to deactivate this user?')) {
+    if (window.confirm('Deactivate this user? They will lose all system access immediately.')) {
       try {
         await deactivateUser(id);
+        toast.success('User status updated');
         fetchData();
       } catch (err) {
-        alert('Failed to deactivate user');
+        toast.error('Operation failed');
       }
     }
   };
 
   const columns = [
-    { header: 'User Info', key: 'name', render: (row) => (
-      <div className="flex flex-col">
-        <span className="font-bold text-text-main">{row.name}</span>
-        <span className="text-xs text-text-muted mt-0.5">{row.email}</span>
-      </div>
-    )},
-    { header: 'Role', render: (row) => (
-      <span className="text-sm font-medium text-text-muted bg-surface border border-border px-2 py-0.5 rounded-md">
-        {row.role?.name || 'Unassigned'}
-      </span>
-    )},
-    { header: 'Site', render: (row) => (
-      <span className="text-sm text-text-muted flex items-center gap-1.5">
-        <MapPin size={14} className="text-accent" />
-        {row.site?.name || 'Unassigned'}
-      </span>
-    )},
-    { header: 'Status', render: (row) => (
-      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm ${
-        row.status === 'active' ? 'bg-success/10 text-success border border-success/20' : 'bg-error/10 text-error border border-error/20'
-      }`}>
-        {row.status}
-      </span>
-    )},
-    { header: 'Actions', render: (row) => (
-      <div className="flex gap-2">
-        <button onClick={() => handleOpenModal(row)} className="p-2 hover:bg-primary/10 text-primary border border-transparent hover:border-primary/20 rounded-lg transition-all" title="Edit">
-          <Edit2 size={16} />
-        </button>
-        <button onClick={() => handleDeactivate(row._id)} className="p-2 hover:bg-error/10 text-error border border-transparent hover:border-error/20 rounded-lg transition-all" title="Deactivate">
-          <UserX size={16} />
-        </button>
-      </div>
-    )},
+    { 
+      header: 'Identity', 
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-text-muted font-bold border border-border">
+            {row.name.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex flex-col">
+            <span className="font-bold text-text-main">{row.name}</span>
+            <span className="text-xs text-text-muted flex items-center gap-1">
+              <Mail size={12} /> {row.email}
+            </span>
+          </div>
+        </div>
+      )
+    },
+    { 
+      header: 'Role & Access', 
+      render: (row) => (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-text-main">
+            <Shield size={14} className="text-primary" />
+            {row.role?.name || 'Unassigned'}
+          </div>
+          <Badge variant="primary" className="w-fit text-[9px] px-1.5">System Policy</Badge>
+        </div>
+      )
+    },
+    { 
+      header: 'Primary Site', 
+      render: (row) => (
+        <div className="flex items-center gap-2 text-sm text-text-muted font-medium">
+          <div className="p-1.5 bg-orange-50 text-orange-600 rounded-lg">
+            <MapPin size={14} />
+          </div>
+          {row.site?.name || 'Any Site'}
+        </div>
+      )
+    },
+    { 
+      header: 'Status', 
+      render: (row) => (
+        <Badge variant={row.status === 'active' ? 'success' : 'error'}>
+          {row.status}
+        </Badge>
+      )
+    },
+    { 
+      header: 'Actions', 
+      render: (row) => (
+        <div className="flex gap-1 justify-end">
+          <Button variant="ghost" size="icon" onClick={() => handleOpenModal(row)} title="Edit Profile">
+            <Edit2 size={16} />
+          </Button>
+          <Button variant="ghost" size="icon" className="hover:text-error" onClick={() => handleDeactivate(row._id)} title="Deactivate">
+            <UserX size={16} />
+          </Button>
+        </div>
+      )
+    },
   ];
 
-  const InputClass = "w-full p-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-main font-medium";
-
   return (
-    <div className="fade-in">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div className="space-y-8">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-text-main mb-1 tracking-tight">System Users</h1>
-          <p className="text-text-muted text-sm">Manage system access, identities, and permissions.</p>
+          <h2 className="text-3xl font-black text-text-main tracking-tight">System Identities</h2>
+          <p className="text-sm text-text-muted mt-1 font-medium">Manage corporate identities, roles, and site affiliations.</p>
         </div>
-        <Button onClick={() => handleOpenModal()}>
-          <Plus size={18} /> Add New User
+        <Button onClick={() => handleOpenModal()} className="shadow-lg shadow-primary/10">
+          <Plus size={18} /> Add New Identity
         </Button>
       </header>
 
-      <div className="card mb-6 shadow-sm p-4">
-        <div className="relative max-w-md">
+      <Card className="p-4 border-none shadow-sm ring-1 ring-border bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative w-full max-w-md">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
           <input 
             type="text" 
-            placeholder="Search by name or email..." 
-            className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm transition-shadow shadow-sm"
+            placeholder="Search by name, email, or role..." 
+            className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium"
             value={params.search}
             onChange={(e) => setParams({ ...params, search: e.target.value, page: 1 })}
           />
         </div>
-      </div>
+        <div className="flex items-center gap-2">
+           <Button variant="secondary" size="sm" className="hidden sm:flex">
+             Export CSV
+           </Button>
+           <Button variant="secondary" size="sm" className="hidden sm:flex">
+             Filter Rules
+           </Button>
+        </div>
+      </Card>
 
-      <div className="card shadow-sm p-0 border-none overflow-hidden bg-surface">
-        <Table columns={columns} data={users} loading={loading} />
+      <Card className="p-0 border-none shadow-sm ring-1 ring-border overflow-hidden bg-white">
+        <Table columns={columns} data={users} loading={loading} emptyMessage="No system users found matching your criteria." />
         
-        <div className="flex items-center justify-between p-4 border-t border-border bg-background/30">
-          <span className="text-xs text-text-muted font-medium">Page {pagination.current} of {pagination.pages}</span>
-          <div className="flex gap-2">
+        <div className="flex items-center justify-between px-6 py-4 bg-slate-50/50 border-t border-border">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-text-muted uppercase tracking-widest leading-none">
+              Viewing Page {pagination.current} of {pagination.pages}
+            </span>
+          </div>
+          <div className="flex gap-3">
             <Button 
-              variant="outline" 
-              className="px-3 py-1.5 text-xs bg-surface" 
+              variant="secondary" 
+              size="sm"
+              className="px-4"
               disabled={pagination.current === 1}
               onClick={() => setParams({ ...params, page: pagination.current - 1 })}
             >
               Previous
             </Button>
             <Button 
-              variant="outline" 
-              className="px-3 py-1.5 text-xs bg-surface" 
+              variant="secondary" 
+              size="sm"
+              className="px-4"
               disabled={pagination.current === pagination.pages}
               onClick={() => setParams({ ...params, page: pagination.current + 1 })}
             >
@@ -173,78 +219,70 @@ const Users = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </Card>
 
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={editUser ? 'Edit User Profile' : 'Create New User'}
+        title={editUser ? 'Modify Identity Profile' : 'Provision New Identity'}
       >
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Full Name</label>
-            <input 
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <Input 
+              label="Full Legal Name"
               required
-              className={InputClass}
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g. John Doe"
+              placeholder="e.g. Alexander Pierce"
             />
-          </div>
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Email Address</label>
-            <input 
+            <Input 
+              label="Corporate Email"
               type="email"
               required
-              className={InputClass}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="e.g. john@example.com"
+              placeholder="pierce@company.com"
             />
           </div>
+
           {!editUser && (
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Temporary Password</label>
-              <input 
-                type="password"
-                required
-                className={InputClass}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="Secure password"
-              />
-            </div>
+            <Input 
+              label="Initialization Password"
+              type="password"
+              required
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              placeholder="Set a secure temporary password"
+            />
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Assigned Role</label>
-              <select 
-                className={InputClass}
-                required
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              >
-                <option value="">Select Role</option>
-                {roles.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Primary Site</label>
-              <select 
-                className={InputClass}
-                required
-                value={formData.site}
-                onChange={(e) => setFormData({ ...formData, site: e.target.value })}
-              >
-                <option value="">Select Site</option>
-                {sites.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-              </select>
-            </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <Select 
+              label="Access Role"
+              required
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+            >
+              <option value="">Choose a security role</option>
+              {roles.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
+            </Select>
+            <Select 
+              label="Assigned Site"
+              required
+              value={formData.site}
+              onChange={(e) => setFormData({ ...formData, site: e.target.value })}
+            >
+              <option value="">Default Site (All)</option>
+              {sites.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+            </Select>
           </div>
           
-          <div className="pt-4 mt-6 border-t border-border">
-            <Button type="submit" className="w-full py-3">
-              {editUser ? 'Update User' : 'Create User'}
+          <div className="pt-6 border-t border-border flex justify-end gap-3">
+            <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" className="px-8 shadow-md">
+              {editUser ? 'Commit Changes' : 'Provision Account'}
             </Button>
           </div>
         </form>

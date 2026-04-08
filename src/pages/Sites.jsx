@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, MapPin } from 'lucide-react';
+import { Plus, Edit2, Trash2, MapPin, Building2, Globe, Activity } from 'lucide-react';
 import { getSites, createSite, updateSite, deleteSite } from '../services/siteService';
 import Table from '../components/UI/Table';
 import Button from '../components/UI/Button';
 import Modal from '../components/UI/Modal';
+import Input, { Select } from '../components/UI/Input';
+import Badge from '../components/UI/Badge';
+import Card from '../components/UI/Card';
+import { toast } from 'react-hot-toast';
 
 const Sites = () => {
   const [sites, setSites] = useState([]);
@@ -18,7 +22,7 @@ const Sites = () => {
       const data = await getSites();
       setSites(data);
     } catch (err) {
-      console.error(err);
+      toast.error('Failed to sync facility data');
     } finally {
       setLoading(false);
     }
@@ -44,117 +48,151 @@ const Sites = () => {
     try {
       if (editSite) {
         await updateSite(editSite._id, formData);
+        toast.success('Facility updated successfully');
       } else {
         await createSite(formData);
+        toast.success('New facility registered');
       }
       setIsModalOpen(false);
       fetchSites();
     } catch (err) {
-      alert('Failed to save site');
+      toast.error(err.response?.data?.message || 'Failed to sync record');
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this site?')) {
+    if (window.confirm('Decommission this facility? This will remove all associated telemetry endpoints.')) {
       try {
         await deleteSite(id);
+        toast.success('Facility decommissioned');
         fetchSites();
       } catch (err) {
-        alert('Failed to delete site');
+        toast.error('Operation failed');
       }
     }
   };
 
   const columns = [
-    { header: 'Site Info', key: 'name', render: (row) => (
-      <div className="flex items-center gap-3 font-bold text-text-main tracking-tight">
-        <div className="p-2 bg-primary/10 rounded-lg text-primary">
-          <MapPin size={18} />
+    { 
+      header: 'Facility Site', 
+      render: (row) => (
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 bg-orange-50 text-orange-600 rounded-xl border border-orange-100 shadow-sm">
+            <Building2 size={20} />
+          </div>
+          <div>
+            <span className="text-sm font-bold text-text-main tracking-tight uppercase">{row.name}</span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <Globe size={12} className="text-text-muted" />
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{row.location}</span>
+            </div>
+          </div>
         </div>
-        <div>
-          <p className="font-bold text-text-main">{row.name}</p>
-          <p className="text-[11px] text-text-muted mt-0.5 font-normal">{row.location}</p>
+      )
+    },
+    { 
+      header: 'Telemetry Status', 
+      render: (row) => (
+        <div className="flex items-center gap-2">
+           <Badge variant={row.status === 'active' ? 'success' : 'error'}>
+            {row.status === 'active' ? 'Operational' : 'Maintenance'}
+          </Badge>
+          <div className="flex items-center gap-1">
+            <Activity size={12} className={row.status === 'active' ? 'text-emerald-500 animate-pulse' : 'text-slate-300'} />
+            <span className="text-[10px] font-bold text-text-muted">LINK_STABLE</span>
+          </div>
         </div>
-      </div>
-    )},
-    { header: 'Status', render: (row) => (
-      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm ${
-        row.status === 'active' ? 'bg-success/10 text-success border border-success/20' : 'bg-error/10 text-error border border-error/20'
-      }`}>
-        {row.status}
-      </span>
-    )},
-    { header: 'Actions', render: (row) => (
-      <div className="flex gap-2">
-        <button onClick={() => handleOpenModal(row)} className="p-2 hover:bg-primary/10 text-primary border border-transparent hover:border-primary/20 rounded-lg transition-all" title="Edit">
-          <Edit2 size={16} />
-        </button>
-        <button onClick={() => handleDelete(row._id)} className="p-2 hover:bg-error/10 text-error border border-transparent hover:border-error/20 rounded-lg transition-all" title="Delete">
-          <Trash2 size={16} />
-        </button>
-      </div>
-    )},
+      )
+    },
+    { 
+      header: 'Actions', 
+      render: (row) => (
+        <div className="flex gap-1 justify-end">
+          <Button variant="ghost" size="icon" onClick={() => handleOpenModal(row)} title="Manage Settings">
+            <Edit2 size={16} />
+          </Button>
+          <Button variant="ghost" size="icon" className="hover:text-error" onClick={() => handleDelete(row._id)} title="Decommission">
+            <Trash2 size={16} />
+          </Button>
+        </div>
+      )
+    },
   ];
 
-  const InputClass = "w-full p-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-main font-medium";
-
   return (
-    <div className="fade-in">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div className="space-y-8">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-text-main mb-1 tracking-tight">Facility Sites</h1>
-          <p className="text-text-muted text-sm">Manage physical locations and infrastructure endpoints.</p>
+          <h2 className="text-3xl font-black text-text-main tracking-tight">Infrastructure Hubs</h2>
+          <p className="text-sm text-text-muted mt-1 font-medium">Provision and monitor physical locations across your tenant network.</p>
         </div>
-        <Button onClick={() => handleOpenModal()}>
-          <Plus size={18} /> Add New Site
+        <Button onClick={() => handleOpenModal()} className="shadow-lg shadow-primary/10">
+          <Plus size={18} /> Register New Facility
         </Button>
       </header>
 
-      <div className="card shadow-sm p-0 border-none justify-between overflow-hidden bg-surface">
-        <Table columns={columns} data={sites} loading={loading} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {[
+          { label: 'Total Capacity', value: sites.length, icon: <Building2 />, color: 'bg-slate-50 text-slate-600' },
+          { label: 'Active Links', value: sites.filter(s => s.status === 'active').length, icon: <Activity />, color: 'bg-emerald-50 text-emerald-600' },
+          { label: 'Network Points', value: sites.length * 4, icon: <Globe />, color: 'bg-blue-50 text-blue-600' },
+        ].map((stat, i) => (
+          <Card key={i} className="p-6 border-none shadow-sm ring-1 ring-border flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">{stat.label}</p>
+              <p className="text-3xl font-black text-text-main">{stat.value}</p>
+            </div>
+            <div className={`p-3 rounded-xl ${stat.color}`}>
+              {stat.icon}
+            </div>
+          </Card>
+        ))}
       </div>
+
+      <Card className="p-0 border-none shadow-sm ring-1 ring-border overflow-hidden bg-white">
+        <Table columns={columns} data={sites} loading={loading} emptyMessage="No physical facilities registered." />
+        <div className="px-6 py-4 bg-slate-50/50 border-t border-border">
+          <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-2">
+            <MapPin size={12} /> Geographic distribution is currently restricted to your primary region.
+          </p>
+        </div>
+      </Card>
 
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={editSite ? 'Edit Site Settings' : 'Register New Site'}
+        title={editSite ? 'Configure Facility Settings' : 'Provision New Facility'}
       >
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Site Name</label>
-            <input 
-              required
-              className={InputClass}
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g. London Tech Hub"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Physical Address</label>
-            <input 
-              required
-              className={InputClass}
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="123 Developer Way, London"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Operational Status</label>
-            <select 
-              className={InputClass}
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            >
-              <option value="active">Active - Online</option>
-              <option value="inactive">Inactive - Offline</option>
-            </select>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input 
+            label="Facility Identifier"
+            required
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="e.g. Frankfurt North-1"
+          />
+          <Input 
+            label="Geographic Location / Address"
+            required
+            value={formData.location}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            placeholder="City, Country or Full Address"
+          />
+          <Select 
+            label="Operational Link Status"
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+          >
+            <option value="active">Active - Online</option>
+            <option value="inactive">Inactive - Maintenance</option>
+          </Select>
           
-          <div className="pt-4 mt-6 border-t border-border">
-            <Button type="submit" className="w-full py-3">
-              {editSite ? 'Update Site' : 'Register Site'}
+          <div className="pt-6 border-t border-border flex justify-end gap-3">
+            <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" className="px-10 shadow-lg shadow-primary/10">
+              {editSite ? 'Apply Configuration' : 'Establish Provisioning'}
             </Button>
           </div>
         </form>

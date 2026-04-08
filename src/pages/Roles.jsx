@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, ShieldCheck, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, ShieldCheck, Check, Info, Lock } from 'lucide-react';
 import { getRoles, createRole, updateRole, deleteRole } from '../services/roleService';
 import Table from '../components/UI/Table';
 import Button from '../components/UI/Button';
 import Modal from '../components/UI/Modal';
+import Input from '../components/UI/Input';
+import Badge from '../components/UI/Badge';
+import Card from '../components/UI/Card';
+import { toast } from 'react-hot-toast';
 
 const PREDEFINED_PERMISSIONS = [
-  { id: 'READ_USERS', label: 'View Users', desc: 'Read access to all users' },
-  { id: 'WRITE_USERS', label: 'Manage Users', desc: 'Create, update, delete users' },
-  { id: 'READ_ROLES', label: 'View Roles', desc: 'Read access to roles & policies' },
-  { id: 'WRITE_ROLES', label: 'Manage Roles', desc: 'Create, update, delete roles' },
-  { id: 'READ_SITES', label: 'View Sites', desc: 'Read access to tenant sites' },
-  { id: 'WRITE_SITES', label: 'Manage Sites', desc: 'Create, update, delete sites' },
+  { id: 'READ_USERS', label: 'View Users', desc: 'Can read all user profiles and directory data.', category: 'Identity' },
+  { id: 'WRITE_USERS', label: 'Manage Users', desc: 'Can create, update, and deactivate user accounts.', category: 'Identity' },
+  { id: 'READ_ROLES', label: 'View Roles', desc: 'Can read role definitions and system policies.', category: 'Security' },
+  { id: 'WRITE_ROLES', label: 'Manage Roles', desc: 'Can create and modify role permissions.', category: 'Security' },
+  { id: 'READ_SITES', label: 'View Sites', desc: 'Can read site details and location data.', category: 'Infrastructure' },
+  { id: 'WRITE_SITES', label: 'Manage Sites', desc: 'Can create and manage site properties.', category: 'Infrastructure' },
 ];
 
 const Roles = () => {
@@ -19,8 +23,6 @@ const Roles = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editRole, setEditRole] = useState(null);
-  
-  // Notice permissions is now properly initialized as an array
   const [formData, setFormData] = useState({ name: '', permissions: [] });
 
   const fetchRoles = async () => {
@@ -29,7 +31,7 @@ const Roles = () => {
       const data = await getRoles();
       setRoles(data);
     } catch (err) {
-      console.error(err);
+      toast.error('Failed to sync security roles');
     } finally {
       setLoading(false);
     }
@@ -42,7 +44,6 @@ const Roles = () => {
   const handleOpenModal = (role = null) => {
     if (role) {
       setEditRole(role);
-      // Ensure permissions exist and are an array
       setFormData({ name: role.name, permissions: Array.isArray(role.permissions) ? role.permissions : [] });
     } else {
       setEditRole(null);
@@ -65,137 +66,189 @@ const Roles = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = {
-      name: formData.name,
-      permissions: formData.permissions
-    };
+    if (formData.permissions.length === 0) {
+      toast.error('Select at least one permission');
+      return;
+    }
     
     try {
       if (editRole) {
-        await updateRole(editRole._id, payload);
+        await updateRole(editRole._id, formData);
+        toast.success('Security policy updated');
       } else {
-        await createRole(payload);
+        await createRole(formData);
+        toast.success('New role provisioned');
       }
       setIsModalOpen(false);
       fetchRoles();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save role');
+      toast.error(err.response?.data?.message || 'Failed to sync record');
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Delete this role? This will fail if users are assigned.')) {
+    if (window.confirm('Revoke this role? This cannot be undone if users are actively assigned.')) {
       try {
         await deleteRole(id);
+        toast.success('Role revoked');
         fetchRoles();
       } catch (err) {
-        alert(err.response?.data?.message || 'Failed to delete role');
+        toast.error(err.response?.data?.message || 'Operation failed');
       }
     }
   };
 
   const columns = [
-    { header: 'Role Name', key: 'name', render: (row) => (
-      <div className="flex items-center gap-3 font-bold uppercase tracking-wide text-text-main">
-        <div className="p-2 bg-primary/10 rounded-lg text-primary">
-          <ShieldCheck size={18} />
+    { 
+      header: 'Security Role', 
+      render: (row) => (
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 bg-violet-50 text-violet-600 rounded-xl border border-violet-100 shadow-sm">
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <span className="text-sm font-bold text-text-main uppercase tracking-tight">{row.name}</span>
+            <div className="flex items-center gap-1 mt-0.5">
+               <Badge variant="accent" className="text-[8px] py-0 px-1.5">Standard Policy</Badge>
+            </div>
+          </div>
         </div>
-        {row.name}
-      </div>
-    )},
-    { header: 'Permissions Assinged', render: (row) => (
-      <div className="flex flex-wrap gap-2 max-w-sm">
-        {row.permissions?.map((p, i) => (
-          <span key={i} className="px-2.5 py-1 bg-surface border border-border shadow-sm rounded-md text-[11px] font-mono font-medium text-text-muted">
-            {p}
-          </span>
-        ))}
-        {(!row.permissions || row.permissions.length === 0) && (
-          <span className="text-sm text-text-muted italic">No permissions</span>
-        )}
-      </div>
-    )},
-    { header: 'Actions', render: (row) => (
-      <div className="flex gap-2">
-        <button onClick={() => handleOpenModal(row)} className="p-2 hover:bg-primary/10 text-primary border border-transparent hover:border-primary/20 rounded-lg transition-all" title="Edit">
-          <Edit2 size={16} />
-        </button>
-        <button onClick={() => handleDelete(row._id)} className="p-2 hover:bg-error/10 text-error border border-transparent hover:border-error/20 rounded-lg transition-all" title="Delete">
-          <Trash2 size={16} />
-        </button>
-      </div>
-    )},
+      )
+    },
+    { 
+      header: 'Assigned Privileges', 
+      render: (row) => (
+        <div className="flex flex-wrap gap-1.5 max-w-md">
+          {row.permissions?.map((p, i) => (
+            <Badge key={i} variant="primary" className="bg-slate-50 border-slate-200 text-slate-600 lowercase font-mono">
+              {p}
+            </Badge>
+          ))}
+          {(!row.permissions || row.permissions.length === 0) && (
+            <span className="text-xs text-text-muted italic">No privileges defined</span>
+          )}
+        </div>
+      )
+    },
+    { 
+      header: 'Actions', 
+      render: (row) => (
+        <div className="flex gap-1 justify-end">
+          <Button variant="ghost" size="icon" onClick={() => handleOpenModal(row)} title="Edit Policy">
+            <Edit2 size={16} />
+          </Button>
+          <Button variant="ghost" size="icon" className="hover:text-error" onClick={() => handleDelete(row._id)} title="Revoke Role">
+            <Trash2 size={16} />
+          </Button>
+        </div>
+      )
+    },
   ];
 
   return (
-    <div className="fade-in">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div className="space-y-8">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-text-main mb-1 tracking-tight">Access Roles</h1>
-          <p className="text-text-muted text-sm">Configure access policies and system permissions across all sites.</p>
+          <h2 className="text-3xl font-black text-text-main tracking-tight">Access Policies</h2>
+          <p className="text-sm text-text-muted mt-1 font-medium">Define and manage granular security permissions for system personas.</p>
         </div>
-        <Button onClick={() => handleOpenModal()}>
+        <Button onClick={() => handleOpenModal()} className="shadow-lg shadow-primary/10">
           <Plus size={18} /> Add New Role
         </Button>
       </header>
 
-      <div className="card p-0 shadow-sm border-none overflow-hidden bg-surface">
-        <Table columns={columns} data={roles} loading={loading} />
-      </div>
+      <Card className="p-0 border-none shadow-sm ring-1 ring-border overflow-hidden bg-white">
+        <Table columns={columns} data={roles} loading={loading} emptyMessage="No security roles defined in the system." />
+        <div className="px-6 py-3 bg-slate-50/50 border-t border-border flex items-center gap-2">
+           <Info size={14} className="text-text-muted" />
+           <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
+             Roles are global and apply to all affiliated sites.
+           </span>
+        </div>
+      </Card>
 
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={editRole ? 'Edit Role Policy' : 'Create New Role Policy'}
+        title={editRole ? 'Modify Access Policy' : 'Provision Security Role'}
+        maxWidth="max-w-2xl"
       >
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Role Name</label>
-            <input 
-              required
-              className="w-full p-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-main font-medium"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g. Site Manager"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <Input 
+            label="Policy Designation"
+            required
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="e.g. Regional Manager"
+            className="text-lg font-bold"
+          />
           
-          <div className="space-y-3">
-            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">
-              Matrix Permissions
-            </label>
-            <p className="text-xs text-text-muted mb-4">Select the exact permissions this role should inherently have.</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+               <div>
+                 <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">
+                   Permission Matrix
+                 </label>
+                 <p className="text-xs text-text-muted mt-0.5">Select the specific privileges this role should inherit.</p>
+               </div>
+               <Badge variant="accent">Checkbox Multi-Select</Badge>
+            </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {PREDEFINED_PERMISSIONS.map(perm => {
                 const isSelected = formData.permissions.includes(perm.id);
                 return (
-                  <div 
+                  <label 
                     key={perm.id}
-                    onClick={() => handleTogglePermission(perm.id)}
-                    className={`relative flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                      isSelected ? 'border-primary bg-primary/5' : 'border-border bg-surface hover:border-text-muted/30'
+                    className={`group relative flex items-start gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
+                      isSelected 
+                        ? 'border-primary bg-primary/5 ring-4 ring-primary/5' 
+                        : 'border-slate-100 bg-white hover:border-border hover:shadow-md'
                     }`}
                   >
-                    <div className={`mt-0.5 flex items-center justify-center w-5 h-5 rounded border flex-shrink-0 transition-colors ${
-                      isSelected ? 'bg-primary border-primary' : 'bg-background border-border'
+                    <input 
+                      type="checkbox"
+                      className="sr-only"
+                      checked={isSelected}
+                      onChange={() => handleTogglePermission(perm.id)}
+                    />
+                    <div className={`mt-0.5 flex items-center justify-center w-6 h-6 rounded-lg border-2 flex-shrink-0 transition-all ${
+                      isSelected 
+                        ? 'bg-primary border-primary shadow-lg shadow-primary/20' 
+                        : 'bg-slate-50 border-border group-hover:border-slate-400'
                     }`}>
-                      {isSelected && <Check size={14} className="text-white" />}
+                      {isSelected && <Check size={14} className="text-white stroke-[3px]" />}
                     </div>
                     <div>
-                      <p className={`text-sm font-bold ${isSelected ? 'text-primary-dark' : 'text-text-main'}`}>{perm.label}</p>
-                      <p className="text-[11px] text-text-muted leading-tight mt-0.5">{perm.desc}</p>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-sm font-bold ${isSelected ? 'text-primary' : 'text-text-main'}`}>
+                          {perm.label}
+                        </p>
+                        <span className="text-[9px] font-black uppercase text-text-muted/50 tracking-tighter">
+                          {perm.category}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-text-muted leading-relaxed mt-1">{perm.desc}</p>
                     </div>
-                  </div>
+                  </label>
                 );
               })}
             </div>
           </div>
           
-          <div className="pt-4 mt-6 border-t border-border">
-            <Button type="submit" className="w-full py-3">
-              {editRole ? 'Update Role' : 'Create Role'}
-            </Button>
+          <div className="pt-6 border-t border-border flex items-center justify-between">
+            <div className="flex items-center gap-2 text-text-muted">
+               <Lock size={14} />
+               <span className="text-[11px] font-medium">Encrypted on save</span>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" className="px-10 shadow-lg shadow-primary/10">
+                {editRole ? 'Commit Updates' : 'Confirm Provisioning'}
+              </Button>
+            </div>
           </div>
         </form>
       </Modal>

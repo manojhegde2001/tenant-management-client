@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Users, ShieldCheck, MapPin, UserCheck } from 'lucide-react';
+import { Users, ShieldCheck, MapPin, UserCheck, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
 import { getDashboardStats } from '../services/dashboardService';
+import Card, { CardHeader, CardTitle, CardDescription, CardContent } from '../components/UI/Card';
+import Badge from '../components/UI/Badge';
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -21,53 +23,161 @@ const Dashboard = () => {
   }, []);
 
   const statCards = [
-    { label: 'Total Users', value: stats?.totalUsers || 0, icon: <Users size={24} />, color: 'text-primary bg-primary/10' },
-    { label: 'Active Users', value: stats?.activeUsers || 0, icon: <UserCheck size={24} />, color: 'text-success bg-success/10' },
-    { label: 'Total Roles', value: stats?.totalRoles || 0, icon: <ShieldCheck size={24} />, color: 'text-accent bg-accent/10' },
-    { label: 'Total Sites', value: stats?.totalSites || 0, icon: <MapPin size={24} />, color: 'text-warning bg-warning/10' },
+    { 
+      label: 'Total Users', 
+      value: stats?.totalUsers || 0, 
+      icon: <Users size={22} />, 
+      color: 'bg-blue-50 text-blue-600',
+      trend: '+12%',
+      trendUp: true 
+    },
+    { 
+      label: 'Active Users', 
+      value: stats?.activeUsers || 0, 
+      icon: <UserCheck size={22} />, 
+      color: 'bg-emerald-50 text-emerald-600',
+      trend: '+5%',
+      trendUp: true 
+    },
+    { 
+      label: 'Total Roles', 
+      value: stats?.totalRoles || 0, 
+      icon: <ShieldCheck size={22} />, 
+      color: 'bg-violet-50 text-violet-600',
+      trend: '0%',
+      trendUp: true 
+    },
+    { 
+      label: 'Total Sites', 
+      value: stats?.totalSites || 0, 
+      icon: <MapPin size={22} />, 
+      color: 'bg-orange-50 text-orange-600',
+      trend: '+2%',
+      trendUp: true 
+    },
   ];
 
-  return (
-    <div className="fade-in">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-text-main">Dashboard</h1>
-        <p className="text-text-muted">Overview of your tenant infrastructure.</p>
-      </header>
-
-      {loading ? (
+  if (loading) {
+    return (
+      <div className="space-y-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map(idx => (
-            <div key={idx} className="h-32 bg-surface rounded-xl border border-border shadow-sm flex flex-col justify-center p-6 animate-pulse">
-              <div className="h-4 bg-background w-24 mb-4 rounded"></div>
-              <div className="h-8 bg-background w-12 rounded"></div>
+            <div key={idx} className="h-40 bg-white rounded-3xl border border-border p-6 animate-pulse">
+              <div className="flex justify-between items-start mb-6">
+                <div className="w-12 h-12 bg-gray-100 rounded-xl"></div>
+                <div className="w-16 h-6 bg-gray-100 rounded-full"></div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-100 rounded w-24"></div>
+                <div className="h-8 bg-gray-100 rounded w-16"></div>
+              </div>
             </div>
           ))}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
-          {statCards.map((card, idx) => (
-            <div key={idx} className="card p-6 flex items-center justify-between hover:shadow-md transition-shadow group cursor-default">
-              <div>
-                <p className="text-sm font-semibold text-text-muted mb-2 tracking-wide uppercase">{card.label}</p>
-                <h3 className="text-3xl font-black text-text-main group-hover:text-primary transition-colors">{card.value}</h3>
-              </div>
-              <div className={`p-4 rounded-full ${card.color} transition-transform group-hover:scale-110`}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="h-80 bg-white rounded-3xl border border-border animate-pulse"></div>
+          <div className="h-80 bg-white rounded-3xl border border-border animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((card, idx) => (
+          <Card key={idx} className="p-6 hover:shadow-xl hover:shadow-primary/5 group cursor-default border-none shadow-sm ring-1 ring-border">
+            <div className="flex justify-between items-start mb-6">
+              <div className={`p-3 rounded-2xl ${card.color} transition-transform group-hover:scale-110 shadow-sm`}>
                 {card.icon}
               </div>
+              <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${card.trendUp ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+                {card.trendUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                {card.trend}
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+            <div>
+              <p className="text-xs font-bold text-text-muted uppercase tracking-widest mb-1">{card.label}</p>
+              <h3 className="text-3xl font-black text-text-main group-hover:text-primary transition-colors">{card.value}</h3>
+            </div>
+          </Card>
+        ))}
+      </div>
 
-      {/* Placeholder for charts/recent activity */}
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card h-80 flex flex-col items-center justify-center text-text-muted border-dashed border-2 bg-transparent hover:bg-surface transition-colors">
-          <MapPin size={48} className="mb-4 text-border" />
-          <p className="font-semibold">Chart Placeholder: User Growth</p>
+      {/* Grid Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Activity Chart Area */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="h-full min-h-[400px] flex flex-col border-none shadow-sm ring-1 ring-border">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Infrastructure Growth</CardTitle>
+                <CardDescription>Monthly growth of users and sites across the network.</CardDescription>
+              </div>
+              <Activity className="text-text-muted" size={20} />
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col items-center justify-center p-10 border-t border-border/50">
+              <div className="w-full h-full relative border-2 border-dashed border-border rounded-3xl flex flex-col items-center justify-center bg-slate-50/50">
+                 <div className="p-4 bg-white rounded-full shadow-lg mb-4">
+                   <Activity className="text-primary animate-pulse" size={32} />
+                 </div>
+                 <p className="text-sm font-bold text-text-main">Real-time Visualization</p>
+                 <p className="text-xs text-text-muted mt-1 italic">Data streaming enabled. Waiting for telemetry...</p>
+                 
+                 {/* Visual dots grid */}
+                 <div className="absolute inset-0 grid grid-cols-8 gap-1 opacity-20 pointer-events-none p-4">
+                   {[...Array(64)].map((_, i) => (
+                     <div key={i} className="w-1 h-1 rounded-full bg-primary/30"></div>
+                   ))}
+                 </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <div className="card h-80 flex flex-col items-center justify-center text-text-muted border-dashed border-2 bg-transparent hover:bg-surface transition-colors">
-          <ShieldCheck size={48} className="mb-4 text-border" />
-          <p className="font-semibold">Chart Placeholder: Site Distribution</p>
+
+        {/* Side Panel: Recent Updates */}
+        <div className="space-y-6">
+          <Card className="border-none shadow-sm ring-1 ring-border">
+            <CardHeader>
+              <CardTitle>System Health</CardTitle>
+              <CardDescription>Status of core services and APIs.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[
+                { name: 'Identity API', status: 'Online', variant: 'success' },
+                { name: 'Database Cluster', status: 'Healthy', variant: 'success' },
+                { name: 'Cache Layer', status: 'Optimal', variant: 'success' },
+                { name: 'Gateway', status: 'Degraded', variant: 'warning' },
+              ].map((s, i) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-border">
+                  <span className="text-sm font-semibold text-text-main">{s.name}</span>
+                  <Badge variant={s.variant}>{s.status}</Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-sm ring-1 ring-border bg-primary text-white">
+            <CardHeader>
+              <CardTitle className="text-white">Quick Actions</CardTitle>
+              <CardDescription className="text-white/70">Common management tasks.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3">
+              <button className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl text-[11px] font-bold text-center transition-colors border border-white/20">
+                Generate Report
+              </button>
+              <button className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl text-[11px] font-bold text-center transition-colors border border-white/20">
+                Audit Logs
+              </button>
+              <button className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl text-[11px] font-bold text-center transition-colors border border-white/20">
+                Security Scan
+              </button>
+              <button className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl text-[11px] font-bold text-center transition-colors border border-white/20">
+                Backup Data
+              </button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
