@@ -14,15 +14,15 @@ const Modal = ({ isOpen, onClose, title, children }) => {
       ></div>
       
       {/* Content */}
-      <div className="relative bg-surface w-full max-w-md rounded-2xl shadow-2xl fade-in overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-border">
+      <div className="relative bg-surface w-full max-w-lg md:rounded-2xl rounded-xl shadow-2xl fade-in overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-5 border-b border-border">
           <h2 className="text-xl font-bold">{title}</h2>
           <button onClick={onClose} className="p-2 hover:bg-background rounded-full transition-colors">
             <X size={20} />
           </button>
         </div>
         
-        <div className="p-6">
+        <div className="p-5 overflow-y-auto">
           {children}
         </div>
       </div>

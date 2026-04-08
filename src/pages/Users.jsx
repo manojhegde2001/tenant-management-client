@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Edit2, UserX } from 'lucide-react';
+import { Plus, Search, Edit2, UserX, MapPin } from 'lucide-react';
 import { getUsers, createUser, updateUser, deactivateUser } from '../services/userService';
 import { getRoles } from '../services/roleService';
 import { getSites } from '../services/siteService';
@@ -86,67 +86,78 @@ const Users = () => {
   };
 
   const columns = [
-    { header: 'Name', key: 'name', render: (row) => (
+    { header: 'User Info', key: 'name', render: (row) => (
       <div className="flex flex-col">
-        <span className="font-bold">{row.name}</span>
-        <span className="text-xs text-text-muted">{row.email}</span>
+        <span className="font-bold text-text-main">{row.name}</span>
+        <span className="text-xs text-text-muted mt-0.5">{row.email}</span>
       </div>
     )},
-    { header: 'Role', render: (row) => row.role?.name },
-    { header: 'Site', render: (row) => row.site?.name },
+    { header: 'Role', render: (row) => (
+      <span className="text-sm font-medium text-text-muted bg-surface border border-border px-2 py-0.5 rounded-md">
+        {row.role?.name || 'Unassigned'}
+      </span>
+    )},
+    { header: 'Site', render: (row) => (
+      <span className="text-sm text-text-muted flex items-center gap-1.5">
+        <MapPin size={14} className="text-accent" />
+        {row.site?.name || 'Unassigned'}
+      </span>
+    )},
     { header: 'Status', render: (row) => (
-      <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-        row.status === 'active' ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
+      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm ${
+        row.status === 'active' ? 'bg-success/10 text-success border border-success/20' : 'bg-error/10 text-error border border-error/20'
       }`}>
         {row.status}
       </span>
     )},
     { header: 'Actions', render: (row) => (
       <div className="flex gap-2">
-        <button onClick={() => handleOpenModal(row)} className="p-1.5 hover:bg-primary/10 text-primary rounded transition-colors">
+        <button onClick={() => handleOpenModal(row)} className="p-2 hover:bg-primary/10 text-primary border border-transparent hover:border-primary/20 rounded-lg transition-all" title="Edit">
           <Edit2 size={16} />
         </button>
-        <button onClick={() => handleDeactivate(row._id)} className="p-1.5 hover:bg-error/10 text-error rounded transition-colors">
+        <button onClick={() => handleDeactivate(row._id)} className="p-2 hover:bg-error/10 text-error border border-transparent hover:border-error/20 rounded-lg transition-all" title="Deactivate">
           <UserX size={16} />
         </button>
       </div>
     )},
   ];
 
+  const InputClass = "w-full p-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-text-main font-medium";
+
   return (
     <div className="fade-in">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-text-main">Users</h1>
-          <p className="text-text-muted">Manage system access and permissions.</p>
+          <h1 className="text-3xl font-black text-text-main mb-1 tracking-tight">System Users</h1>
+          <p className="text-text-muted text-sm">Manage system access, identities, and permissions.</p>
         </div>
         <Button onClick={() => handleOpenModal()}>
-          <Plus size={20} /> Add New User
+          <Plus size={18} /> Add New User
         </Button>
       </header>
 
-      <div className="card mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
+      <div className="card mb-6 shadow-sm p-4">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
           <input 
             type="text" 
             placeholder="Search by name or email..." 
-            className="pl-10 h-11"
+            className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm transition-shadow shadow-sm"
             value={params.search}
             onChange={(e) => setParams({ ...params, search: e.target.value, page: 1 })}
           />
         </div>
       </div>
 
-      <div className="card shadow-lg p-0 border-none overflow-hidden">
+      <div className="card shadow-sm p-0 border-none overflow-hidden bg-surface">
         <Table columns={columns} data={users} loading={loading} />
         
         <div className="flex items-center justify-between p-4 border-t border-border bg-background/30">
-          <span className="text-xs text-text-muted">Page {pagination.current} of {pagination.pages}</span>
+          <span className="text-xs text-text-muted font-medium">Page {pagination.current} of {pagination.pages}</span>
           <div className="flex gap-2">
             <Button 
               variant="outline" 
-              className="px-3 py-1.5 text-xs" 
+              className="px-3 py-1.5 text-xs bg-surface" 
               disabled={pagination.current === 1}
               onClick={() => setParams({ ...params, page: pagination.current - 1 })}
             >
@@ -154,7 +165,7 @@ const Users = () => {
             </Button>
             <Button 
               variant="outline" 
-              className="px-3 py-1.5 text-xs" 
+              className="px-3 py-1.5 text-xs bg-surface" 
               disabled={pagination.current === pagination.pages}
               onClick={() => setParams({ ...params, page: pagination.current + 1 })}
             >
@@ -167,42 +178,48 @@ const Users = () => {
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={editUser ? 'Edit User' : 'Add New User'}
+        title={editUser ? 'Edit User Profile' : 'Create New User'}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-text-muted uppercase mb-1">Full Name</label>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Full Name</label>
             <input 
               required
+              className={InputClass}
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="e.g. John Doe"
             />
           </div>
-          <div>
-            <label className="block text-xs font-bold text-text-muted uppercase mb-1">Email Address</label>
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Email Address</label>
             <input 
               type="email"
               required
+              className={InputClass}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              placeholder="e.g. john@example.com"
             />
           </div>
           {!editUser && (
-            <div>
-              <label className="block text-xs font-bold text-text-muted uppercase mb-1">Password</label>
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Temporary Password</label>
               <input 
                 type="password"
                 required
+                className={InputClass}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="Secure password"
               />
             </div>
           )}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-text-muted uppercase mb-1">Role</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Assigned Role</label>
               <select 
-                className="w-full p-3 border border-border rounded-xl bg-surface"
+                className={InputClass}
                 required
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -211,10 +228,10 @@ const Users = () => {
                 {roles.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-text-muted uppercase mb-1">Site</label>
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-text-muted uppercase tracking-wider">Primary Site</label>
               <select 
-                className="w-full p-3 border border-border rounded-xl bg-surface"
+                className={InputClass}
                 required
                 value={formData.site}
                 onChange={(e) => setFormData({ ...formData, site: e.target.value })}
@@ -225,9 +242,11 @@ const Users = () => {
             </div>
           </div>
           
-          <Button type="submit" className="w-full py-3 mt-4">
-            {editUser ? 'Update User' : 'Create User'}
-          </Button>
+          <div className="pt-4 mt-6 border-t border-border">
+            <Button type="submit" className="w-full py-3">
+              {editUser ? 'Update User' : 'Create User'}
+            </Button>
+          </div>
         </form>
       </Modal>
     </div>
