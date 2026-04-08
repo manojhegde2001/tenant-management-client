@@ -14,8 +14,6 @@ const PREDEFINED_PERMISSIONS = [
   { id: 'WRITE_USERS', label: 'Manage Users', desc: 'Can create, update, and deactivate user accounts.', category: 'Identity' },
   { id: 'READ_ROLES', label: 'View Roles', desc: 'Can read role definitions and system policies.', category: 'Security' },
   { id: 'WRITE_ROLES', label: 'Manage Roles', desc: 'Can create and modify role permissions.', category: 'Security' },
-  { id: 'READ_SITES', label: 'View Sites', desc: 'Can read site details and location data.', category: 'Infrastructure' },
-  { id: 'WRITE_SITES', label: 'Manage Sites', desc: 'Can create and manage site properties.', category: 'Infrastructure' },
 ];
 
 const Roles = () => {
@@ -162,7 +160,7 @@ const Roles = () => {
         <div className="px-6 py-3 bg-slate-50/50 border-t border-border flex items-center gap-2">
            <Info size={14} className="text-text-muted" />
            <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
-             Roles are global and apply to all affiliated sites.
+             Roles are global and apply to all affiliated identities.
            </span>
         </div>
       </Card>

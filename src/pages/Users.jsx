@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Edit2, UserX, MapPin, Mail, Shield, User as UserIcon, MoreHorizontal } from 'lucide-react';
+import { Plus, Search, Edit2, UserX, Mail, Shield, User as UserIcon } from 'lucide-react';
 import { getUsers, createUser, updateUser, deactivateUser } from '../services/userService';
 import { getRoles } from '../services/roleService';
-import { getSites } from '../services/siteService';
 import Table from '../components/UI/Table';
 import Button from '../components/UI/Button';
 import Modal from '../components/UI/Modal';
@@ -14,7 +13,6 @@ import { toast } from 'react-hot-toast';
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
-  const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [params, setParams] = useState({ page: 1, limit: 10, search: '' });
   const [pagination, setPagination] = useState({ pages: 1, current: 1 });
@@ -22,7 +20,7 @@ const Users = () => {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: '', site: '', status: 'active' });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: '', status: 'active' });
 
   const fetchData = async () => {
     setLoading(true);
@@ -31,9 +29,8 @@ const Users = () => {
       setUsers(data.users);
       setPagination({ pages: data.pages, current: data.page });
       
-      const [roleData, siteData] = await Promise.all([getRoles(), getSites()]);
+      const roleData = await getRoles();
       setRoles(roleData);
-      setSites(siteData);
     } catch (err) {
       toast.error('Failed to sync user data');
       console.error(err);
@@ -54,12 +51,11 @@ const Users = () => {
         email: user.email,
         password: '',
         role: user.role?._id || '',
-        site: user.site?._id || '',
         status: user.status
       });
     } else {
       setEditUser(null);
-      setFormData({ name: '', email: '', password: '', role: '', site: '', status: 'active' });
+      setFormData({ name: '', email: '', password: '', role: '', status: 'active' });
     }
     setIsModalOpen(true);
   };
@@ -123,17 +119,6 @@ const Users = () => {
       )
     },
     { 
-      header: 'Primary Site', 
-      render: (row) => (
-        <div className="flex items-center gap-2 text-sm text-text-muted font-medium">
-          <div className="p-1.5 bg-orange-50 text-orange-600 rounded-lg">
-            <MapPin size={14} />
-          </div>
-          {row.site?.name || 'Any Site'}
-        </div>
-      )
-    },
-    { 
       header: 'Status', 
       render: (row) => (
         <Badge variant={row.status === 'active' ? 'success' : 'error'}>
@@ -161,14 +146,14 @@ const Users = () => {
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
           <h2 className="text-3xl font-black text-text-main tracking-tight">System Identities</h2>
-          <p className="text-sm text-text-muted mt-1 font-medium">Manage corporate identities, roles, and site affiliations.</p>
+          <p className="text-sm text-text-muted mt-1 font-medium">Manage corporate identities and role-based access control policies.</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="shadow-lg shadow-primary/10">
           <Plus size={18} /> Add New Identity
         </Button>
       </header>
 
-      <Card className="p-4 border-none shadow-sm ring-1 ring-border bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <Card className="p-4 border-none shadow-sm ring-1 ring-border bg-white">
         <div className="relative w-full max-w-md">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
           <input 
@@ -178,14 +163,6 @@ const Users = () => {
             value={params.search}
             onChange={(e) => setParams({ ...params, search: e.target.value, page: 1 })}
           />
-        </div>
-        <div className="flex items-center gap-2">
-           <Button variant="secondary" size="sm" className="hidden sm:flex">
-             Export CSV
-           </Button>
-           <Button variant="secondary" size="sm" className="hidden sm:flex">
-             Filter Rules
-           </Button>
         </div>
       </Card>
 
@@ -256,26 +233,15 @@ const Users = () => {
             />
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <Select 
-              label="Access Role"
-              required
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-            >
-              <option value="">Choose a security role</option>
-              {roles.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
-            </Select>
-            <Select 
-              label="Assigned Site"
-              required
-              value={formData.site}
-              onChange={(e) => setFormData({ ...formData, site: e.target.value })}
-            >
-              <option value="">Default Site (All)</option>
-              {sites.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-            </Select>
-          </div>
+          <Select 
+            label="Access Role"
+            required
+            value={formData.role}
+            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          >
+            <option value="">Choose a security role</option>
+            {roles.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
+          </Select>
           
           <div className="pt-6 border-t border-border flex justify-end gap-3">
             <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>

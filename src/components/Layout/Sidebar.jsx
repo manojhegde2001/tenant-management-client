@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, ShieldCheck, MapPin, X, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, ShieldCheck, X, ChevronRight } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -8,7 +8,6 @@ const Sidebar = ({ isOpen, onClose }) => {
     { to: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
     { to: '/users', icon: <Users size={20} />, label: 'Users' },
     { to: '/roles', icon: <ShieldCheck size={20} />, label: 'Roles' },
-    { to: '/sites', icon: <MapPin size={20} />, label: 'Sites' },
   ];
 
   return (

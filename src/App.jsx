@@ -11,7 +11,6 @@ import Sidebar from './components/Layout/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import Roles from './pages/Roles';
-import Sites from './pages/Sites';
 
 const MainLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -61,7 +60,6 @@ const App = () => {
             <Route path="/" element={<MainLayout><Dashboard /></MainLayout>} />
             <Route path="/users" element={<MainLayout><Users /></MainLayout>} />
             <Route path="/roles" element={<MainLayout><Roles /></MainLayout>} />
-            <Route path="/sites" element={<MainLayout><Sites /></MainLayout>} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
