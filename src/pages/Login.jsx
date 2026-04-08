@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/UI/Button';
 import Input from '../components/UI/Input';
-import { LogIn, ShieldCheck, Mail, Lock } from 'lucide-react';
+import { LogIn, ShieldCheck, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { login, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -66,12 +67,19 @@ const Login = () => {
               <Input 
                 label="Password"
                 placeholder="••••••••"
-                type="password"
-                className="pl-12"
+                type={showPassword ? 'text' : 'password'}
+                className="pl-12 pr-12"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              <button
+                type="button"
+                className="absolute right-4 top-[38px] text-text-muted hover:text-primary transition-colors focus:outline-none"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
 
             <div className="flex items-center justify-between">
@@ -90,15 +98,9 @@ const Login = () => {
               isLoading={loading}
             >
               <LogIn size={20} />
-              Sign in to Dashboard
+              Sign in
             </Button>
           </form>
-
-          <div className="mt-8 pt-6 border-t border-border text-center">
-            <p className="text-[11px] font-bold text-text-muted uppercase tracking-widest leading-relaxed">
-              Proprietary System • Authorized Access Only
-            </p>
-          </div>
         </div>
 
         <p className="text-center mt-8 text-xs text-text-muted font-medium">
