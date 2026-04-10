@@ -2,13 +2,30 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Users, ShieldCheck, X, ChevronRight, Globe } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import usePermission from '../../hooks/usePermission';
 
 const Sidebar = ({ isOpen, onClose }) => {
+  const { hasPermission } = usePermission();
+
   const navItems = [
     { to: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-    { to: '/users', icon: <Users size={20} />, label: 'Users' },
-    { to: '/roles', icon: <ShieldCheck size={20} />, label: 'Roles' },
+    { 
+      to: '/users', 
+      icon: <Users size={20} />, 
+      label: 'Users',
+      permission: 'READ_USERS'
+    },
+    { 
+      to: '/roles', 
+      icon: <ShieldCheck size={20} />, 
+      label: 'Roles',
+      permission: 'READ_ROLES'
+    },
   ];
+
+  const filteredItems = navItems.filter(item => 
+    !item.permission || hasPermission(item.permission)
+  );
 
   return (
     <>
@@ -43,7 +60,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         <nav className="mt-6 px-4 space-y-2">
           <p className="px-4 text-[10px] font-bold text-text-muted uppercase tracking-widest mb-4">Main Menu</p>
-          {navItems.map((item) => (
+          {filteredItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

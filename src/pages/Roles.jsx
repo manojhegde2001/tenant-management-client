@@ -164,6 +164,20 @@ const Roles = () => {
     },
   ];
 
+  if (!hasPermission('READ_ROLES')) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-12 bg-white rounded-3xl border border-border shadow-sm">
+        <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-6">
+          <ShieldCheck size={32} />
+        </div>
+        <h3 className="text-xl font-bold text-text-main">Permission Denied</h3>
+        <p className="text-sm text-text-muted max-w-sm mt-2">
+          You do not have the required security privileges to view or manage system access policies.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">

@@ -38,8 +38,11 @@ const Users = () => {
         total: data.total
       });
       
-      const roleData = await getRoles();
-      setRoles(roleData);
+      // Only fetch roles if the user has permission to read them
+      if (hasPermission('READ_ROLES')) {
+        const roleData = await getRoles();
+        setRoles(roleData);
+      }
     } catch (err) {
       toast.error('Failed to sync user data');
       console.error(err);

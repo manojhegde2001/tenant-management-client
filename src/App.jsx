@@ -58,7 +58,13 @@ const App = () => {
           
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<MainLayout><Dashboard /></MainLayout>} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="READ_USERS" />}>
             <Route path="/users" element={<MainLayout><Users /></MainLayout>} />
+          </Route>
+
+          <Route element={<ProtectedRoute requiredPermission="READ_ROLES" />}>
             <Route path="/roles" element={<MainLayout><Roles /></MainLayout>} />
           </Route>
 
