@@ -15,8 +15,6 @@ const PREDEFINED_PERMISSIONS = [
   { id: 'WRITE_USERS', label: 'Manage Users', desc: 'Can create, update, and deactivate user accounts.', category: 'Identity' },
   { id: 'READ_ROLES', label: 'View Roles', desc: 'Can read role definitions and system policies.', category: 'Security' },
   { id: 'WRITE_ROLES', label: 'Manage Roles', desc: 'Can create and modify role permissions.', category: 'Security' },
-  { id: 'READ_SITES', label: 'View Sites', desc: 'Can read site infrastructure and locations.', category: 'Infrastructure' },
-  { id: 'WRITE_SITES', label: 'Manage Sites', desc: 'Can register and modify sites.', category: 'Infrastructure' },
 ];
 
 const Roles = () => {
