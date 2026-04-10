@@ -9,6 +9,7 @@ import Input, { Select } from '../components/UI/Input';
 import Badge from '../components/UI/Badge';
 import Card from '../components/UI/Card';
 import { toast } from 'react-hot-toast';
+import usePermission from '../hooks/usePermission';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -21,6 +22,9 @@ const Users = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', password: '', role: '', status: 'active' });
+  
+  const { hasPermission } = usePermission();
+  const canWrite = hasPermission('WRITE_USERS');
 
   const fetchData = async () => {
     setLoading(true);
@@ -148,18 +152,25 @@ const Users = () => {
       header: 'Actions', 
       render: (row) => (
         <div className="flex gap-1 justify-end">
-          <Button variant="ghost" size="icon" onClick={() => handleOpenModal(row)} title="Edit Profile">
-            <Edit2 size={16} />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className={row.status === 'active' ? 'hover:text-error' : 'hover:text-success'} 
-            onClick={() => handleToggleStatus(row)} 
-            title={row.status === 'active' ? 'Deactivate' : 'Activate'}
-          >
-            {row.status === 'active' ? <UserX size={16} /> : <UserCheck size={16} />}
-          </Button>
+          {canWrite && (
+            <>
+              <Button variant="ghost" size="icon" onClick={() => handleOpenModal(row)} title="Edit Profile">
+                <Edit2 size={16} />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className={row.status === 'active' ? 'hover:text-error' : 'hover:text-success'} 
+                onClick={() => handleToggleStatus(row)} 
+                title={row.status === 'active' ? 'Deactivate' : 'Activate'}
+              >
+                {row.status === 'active' ? <UserX size={16} /> : <UserCheck size={16} />}
+              </Button>
+            </>
+          )}
+          {!canWrite && (
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2">Read Only</span>
+          )}
         </div>
       )
     },
@@ -172,9 +183,11 @@ const Users = () => {
           <h2 className="text-3xl font-black text-text-main tracking-tight">System Identities</h2>
           <p className="text-sm text-text-muted mt-1 font-medium">Manage corporate identities and role-based access control policies.</p>
         </div>
-        <Button onClick={() => handleOpenModal()} className="shadow-lg shadow-primary/10">
-          <Plus size={18} /> Add New Identity
-        </Button>
+        {canWrite && (
+          <Button onClick={() => handleOpenModal()} className="shadow-lg shadow-primary/10">
+            <Plus size={18} /> Add New Identity
+          </Button>
+        )}
       </header>
 
       <Card className="p-4 border-none shadow-sm ring-1 ring-border bg-white">

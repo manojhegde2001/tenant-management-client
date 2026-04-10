@@ -8,12 +8,15 @@ import Input from '../components/UI/Input';
 import Badge from '../components/UI/Badge';
 import Card from '../components/UI/Card';
 import { toast } from 'react-hot-toast';
+import usePermission from '../hooks/usePermission';
 
 const PREDEFINED_PERMISSIONS = [
   { id: 'READ_USERS', label: 'View Users', desc: 'Can read all user profiles and directory data.', category: 'Identity' },
   { id: 'WRITE_USERS', label: 'Manage Users', desc: 'Can create, update, and deactivate user accounts.', category: 'Identity' },
   { id: 'READ_ROLES', label: 'View Roles', desc: 'Can read role definitions and system policies.', category: 'Security' },
   { id: 'WRITE_ROLES', label: 'Manage Roles', desc: 'Can create and modify role permissions.', category: 'Security' },
+  { id: 'READ_SITES', label: 'View Sites', desc: 'Can read site infrastructure and locations.', category: 'Infrastructure' },
+  { id: 'WRITE_SITES', label: 'Manage Sites', desc: 'Can register and modify sites.', category: 'Infrastructure' },
 ];
 
 const Roles = () => {
@@ -22,6 +25,9 @@ const Roles = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editRole, setEditRole] = useState(null);
   const [formData, setFormData] = useState({ name: '', permissions: [] });
+
+  const { hasPermission } = usePermission();
+  const canWrite = hasPermission('WRITE_ROLES');
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -140,12 +146,19 @@ const Roles = () => {
       header: 'Actions', 
       render: (row) => (
         <div className="flex gap-1 justify-end">
-          <Button variant="ghost" size="icon" onClick={() => handleOpenModal(row)} title="Edit Policy">
-            <Edit2 size={16} />
-          </Button>
-          <Button variant="ghost" size="icon" className="hover:text-error" onClick={() => handleDelete(row._id)} title="Revoke Role">
-            <Trash2 size={16} />
-          </Button>
+          {canWrite && (
+            <>
+              <Button variant="ghost" size="icon" onClick={() => handleOpenModal(row)} title="Edit Policy">
+                <Edit2 size={16} />
+              </Button>
+              <Button variant="ghost" size="icon" className="hover:text-error" onClick={() => handleDelete(row._id)} title="Revoke Role">
+                <Trash2 size={16} />
+              </Button>
+            </>
+          )}
+          {!canWrite && (
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2">Read Only</span>
+          )}
         </div>
       )
     },
@@ -158,9 +171,11 @@ const Roles = () => {
           <h2 className="text-3xl font-black text-text-main tracking-tight">Access Policies</h2>
           <p className="text-sm text-text-muted mt-1 font-medium">Define and manage granular security permissions for system personas.</p>
         </div>
-        <Button onClick={() => handleOpenModal()} className="shadow-lg shadow-primary/10">
-          <Plus size={18} /> Add New Role
-        </Button>
+        {canWrite && (
+          <Button onClick={() => handleOpenModal()} className="shadow-lg shadow-primary/10">
+            <Plus size={18} /> Add New Role
+          </Button>
+        )}
       </header>
 
       <Card className="p-0 border-none shadow-sm ring-1 ring-border overflow-hidden bg-white">
